@@ -1,1 +1,10 @@
+# Models Folder
+
+This folder will store:
+- Trained Random Forest model (random_forest_model.pkl)
+- One-hot encoder (ohe_encoder.joblib)
+
+These files are created automatically after running:
+python src/data_preprocessing.py
+python src/model_training.py
 
