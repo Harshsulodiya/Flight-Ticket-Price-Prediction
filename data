@@ -1,1 +1,38 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+import joblib
+
+def preprocess(path="flight_data.csv"):
+    df = pd.read_csv(path)
+
+    df["Journey_Date"] = pd.to_datetime(df["Journey_Date"])
+    df["Month"] = df["Journey_Date"].dt.month
+    df["Day"] = df["Journey_Date"].dt.day
+
+    def dur_to_mins(x):
+        h, m = x.split("h")
+        return int(h.strip()) * 60 + int(m.replace("m","").strip())
+
+    df["Duration_mins"] = df["Duration"].apply(dur_to_mins)
+
+    cat_cols = ["Airline", "Source", "Destination"]
+    enc = OneHotEncoder(sparse=False, handle_unknown="ignore")
+    enc_df = pd.DataFrame(enc.fit_transform(df[cat_cols]),
+                          columns=enc.get_feature_names_out(cat_cols))
+
+    df = pd.concat([df.reset_index(drop=True), enc_df], axis=1)
+    df.drop(columns=cat_cols + ["Journey_Date", "Departure_Time", "Duration"], inplace=True)
+
+    cols = [c for c in df.columns if c != "Price"] + ["Price"]
+    df = df[cols]
+
+    joblib.dump(enc, "ohe_encoder.joblib")
+    df.to_csv("flight_data_processed.csv", index=False)
+
+    print("Preprocessing complete. Saved to flight_data_processed.csv")
+
+
+if __name__ == "__main__":
+    preprocess()
 
